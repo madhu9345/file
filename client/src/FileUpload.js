@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./App.css";
 
+const API_URL = "https://file-1-58gl.onrender.com"; // ✅ Deployed backend URL
+
 function FileUpload() {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
@@ -22,25 +24,25 @@ function FileUpload() {
     "application/vnd.ms-excel",
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     "video/mp4",
-    "video/webm"
+    "video/webm",
   ];
 
+  // Fetch uploaded files
   useEffect(() => {
-  const fetchUploadedFiles = async () => {
-    try {
-      const res = await axios.get("http://localhost:5000/files");
-      setUploadedFiles(res.data.files);
-    } catch (err) {
-      console.error(err);
-      setMessage("Failed to fetch files");
-      setTimeout(() => setMessage(""), 4000);
-    }
-  };
+    const fetchUploadedFiles = async () => {
+      try {
+        const res = await axios.get(`${API_URL}/files`);
+        setUploadedFiles(res.data.files);
+      } catch (err) {
+        console.error(err);
+        setMessage("Failed to fetch files");
+        setTimeout(() => setMessage(""), 4000);
+      }
+    };
+    fetchUploadedFiles();
+  }, []);
 
-  fetchUploadedFiles();
-}, []);
-
-  // ✅ Cleanup preview URL when file changes
+  // Cleanup preview URL when file changes
   useEffect(() => {
     return () => preview && URL.revokeObjectURL(preview);
   }, [preview]);
@@ -87,7 +89,7 @@ function FileUpload() {
 
     try {
       setProgress(0);
-      const res = await axios.post("http://localhost:5000/upload", formData, {
+      const res = await axios.post(`${API_URL}/upload`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
         onUploadProgress: (event) => {
           const percent = Math.round((event.loaded * 100) / event.total);
@@ -111,7 +113,7 @@ function FileUpload() {
 
   const handleDelete = async (filename) => {
     try {
-      await axios.delete(`http://localhost:5000/files/${filename}`);
+      await axios.delete(`${API_URL}/files/${filename}`);
       setUploadedFiles((prev) => prev.filter((f) => f !== filename));
       setMessage(`Deleted ${filename}`);
       resetMessage();
@@ -129,11 +131,11 @@ function FileUpload() {
 
     if (["doc", "docx", "xls", "xlsx"].includes(ext)) {
       const url = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
-        `http://localhost:5000/files/${fileNameOnly}`
+        `${API_URL}/files/${fileNameOnly}`
       )}`;
       window.open(url, "_blank");
     } else {
-      window.open(`http://localhost:5000/files/${fileNameOnly}`, "_blank");
+      window.open(`${API_URL}/files/${fileNameOnly}`, "_blank");
     }
   };
 
@@ -200,11 +202,7 @@ function FileUpload() {
         <ul>
           {uploadedFiles.map((f) => (
             <li key={f}>
-              <a
-                href={`http://localhost:5000/files/${f}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <a href={`${API_URL}/files/${f}`} target="_blank" rel="noopener noreferrer">
                 {f}
               </a>
             </li>
